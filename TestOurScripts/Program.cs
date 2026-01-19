@@ -2,7 +2,8 @@
 
 //MySys2 commands:
 
-// cd /c/Users/Alex/source/TestOurScripts/
+// C:/msys64/mingw64.exe
+// cd /c/Users/Alex/source/TestOurScripts/   <-- this is the Solution Path
 // g++ -m64 -shared -static -o test.dll test.cpp
 // cp -f test.dll TestOurScripts/bin/Debug/net7.0/
 class TestClass
@@ -31,7 +32,7 @@ class TestClass
 
     static Dictionary<int, object> Dh_Keys = new Dictionary<int, object>();
 
-    static string ProgrammName = "TestProgramm";
+    static string ProgrammName = "TestProgrammXX";
 
     static void AddKey(int key)
     {
