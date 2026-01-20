@@ -1,19 +1,47 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Reflection;
+using System.Runtime.InteropServices;
+using TestOurScripts;
 
 //MySys2 commands:
 
 // C:/msys64/mingw64.exe
 // cd /c/Users/Alex/source/TestOurScripts/   <-- this is the Solution Path
-// g++ -m64 -shared -static -o test.dll test.cpp
-// cp -f test.dll TestOurScripts/bin/Debug/net7.0/
+// g++ -m64 -shared -static -o test.dll test.cpp && cp -f test.dll TestOurScripts/bin/Debug/net7.0/
+
 class TestClass
 {
+    static Dictionary<string, long> Dh_Keys = new Dictionary<string, long>();
+    static Dictionary<long, object> Dh_Keys_Storage = new Dictionary<long, object>();
+
+    static void ReflectKeys()
+    {
+        var fields = typeof(KeyList)
+            .GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+            .Where(f => f.IsStatic && f.IsInitOnly);
+
+        foreach (var field in fields)
+        {
+            var value = field.GetValue(null); // null for static fields
+            Console.WriteLine($"{field.Name} = {value}");
+
+            if (!long.TryParse(value.ToString(), out var longValue))
+            {
+                throw new Exception("Cant parse Value");
+            }
+
+            Dh_Keys.Add(field.Name, longValue);
+            Dh_Keys_Storage.Add(longValue, null);
+        }
+
+        Console.WriteLine();
+    }
+
     [DllImport("test.dll", CallingConvention = CallingConvention.Cdecl)]
     static extern IntPtr Test();
 
     // 1. Define the delegate signature
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int WriteKeyDelegate(int key, string message);
+    public delegate int WriteKeyDelegate(int key, [MarshalAs(UnmanagedType.LPStr)] string message);
     public delegate void ReadKeyDelegate(int key);
     public delegate void SetProgrammDelegate(string programmName);
 
@@ -30,38 +58,34 @@ class TestClass
     [DllImport("test.dll", CallingConvention = CallingConvention.Cdecl)]
     static extern IntPtr DA_GetProgramm(string programName);
 
-    static Dictionary<int, object> Dh_Keys = new Dictionary<int, object>();
-
     static string ProgrammName = "TestProgrammXX";
 
     static void AddKey(int key)
     {
-        if (Dh_Keys.ContainsKey(key))
-        {
-            throw new Exception("Cant cant be added twice");
-            return;
-        }
+        //if (Dh_Keys_Storage.ContainsKey(key))
+        //{
+        //    throw new Exception("Cant cant be added twice");
+        //}
 
-        Dh_Keys.Add(key, null);
+        //Dh_Keys_Storage.Add(key, null);
     }
 
     static WriteKeyDelegate writeKeyDelegate = (key, msg) =>
     {
-        if (Dh_Keys.ContainsKey(key))
+        if (!Dh_Keys_Storage.ContainsKey(key))
         {
-            Dh_Keys[key] = msg;
-            Console.WriteLine($"Write key {key} with value: {msg}");
-            return key;
+            Console.WriteLine($"Unknown key {key}");
+            return -1;
         }
-        else
-        {
-            throw new Exception($"Cant find Key {key}");
-        }
+
+        Dh_Keys_Storage[key] = msg;
+        Console.WriteLine($"Write key {key} with value: {msg}");
+        return 0;
     };
 
     static ReadKeyDelegate readKeyDelegate = (key) =>
     {
-        if (!Dh_Keys.TryGetValue(key, out var dhKey))
+        if (!Dh_Keys_Storage.TryGetValue(key, out var dhKey))
             return;
 
         var msg = dhKey;
@@ -72,17 +96,21 @@ class TestClass
         Console.WriteLine($"ReadKey: {key} : {msg}");
     };
 
+    //Get called from C++
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate IntPtr GetProgramNameDelegate();
 
-    //Get called from C++
     static IntPtr ExposeProgrammname()
     {
         return Marshal.StringToHGlobalAnsi(ProgrammName);
     }
 
+    //We need more
+    // ExposeGetDimX(),...
+
     static void Main(string[] args)
     {
+        ReflectKeys();
         AddKey(5015135);
 
         RegisterWriteKeyCallback(writeKeyDelegate);

@@ -1,3 +1,12 @@
+namespace TA7{
+    namespace Utils{
+        std::string GetShort(std::string str)
+        {
+            return str;
+        }
+    }
+}
+
 typedef void (*WriteKeyCallback)(int, const char*);
 typedef void (*ReadKeyCallback)(int);
 typedef void (*SetProgrammCallback)(const char*);
