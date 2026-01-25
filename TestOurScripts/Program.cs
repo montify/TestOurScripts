@@ -1,8 +1,11 @@
-﻿public class Programm
+﻿using TestOurScripts;
+
+public class Programm
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(args.Length);
+        var bridge = new Bridge();
+        bridge.Run();
 
         Console.Read();
     }

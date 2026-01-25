@@ -1,5 +1,9 @@
-namespace TA7{
-    namespace Utils{
+#include <cstring>
+
+namespace TA7
+{
+    namespace Utils
+    {
         std::string GetShort(std::string str)
         {
             return str;
@@ -7,62 +11,60 @@ namespace TA7{
     }
 }
 
-typedef void (*WriteKeyCallback)(int, const char*);
+typedef void (*WriteKeyCallback)(int, const char *);
 typedef void (*ReadKeyCallback)(int);
-typedef void (*SetProgrammCallback)(const char*);
+typedef void (*SetProgrammCallback)(const char *);
 
 static WriteKeyCallback writeKeyCallback = nullptr;
 static ReadKeyCallback readKeyCallback = nullptr;
 static SetProgrammCallback programmCallback = nullptr;
 
-extern "C" __declspec(dllexport) void RegisterWriteKeyCallback(WriteKeyCallback callback) {
+// Write values to c#
+extern "C" __declspec(dllexport) void RegisterWriteKeyCallback(WriteKeyCallback callback)
+{
     writeKeyCallback = callback;
 }
-extern "C" __declspec(dllexport) void RegisterReadKeyCallback(ReadKeyCallback callback) {
+extern "C" __declspec(dllexport) void RegisterReadKeyCallback(ReadKeyCallback callback)
+{
     readKeyCallback = callback;
 }
 
-extern "C" __declspec(dllexport) void RegisterProgrammCallback(SetProgrammCallback callback) {
+extern "C" __declspec(dllexport) void RegisterProgrammCallback(SetProgrammCallback callback)
+{
     programmCallback = callback;
 }
 
-
-
-void WriteKey(int key, const char* s)
-{
-    if (writeKeyCallback)
-        writeKeyCallback(key, s);
-}
-
-void ReadKey(int key)
-{
-    if (readKeyCallback)
-        readKeyCallback(key);
-}
-
-void LOGCL(const char* msg)
-{
-    //return to C#
-
-   
-}
-
-// C-compatible function pointer type
-typedef const char* (*GetProgramNameCallback)();
-// Store callback
+typedef const char *(*GetProgramNameCallback)();
 static GetProgramNameCallback g_getProgramName = nullptr;
-
-// Called by C# to register callback
-extern "C" __declspec(dllexport) void DA_SetGetProgramNameCallback(GetProgramNameCallback cb) {
+extern "C" __declspec(dllexport) void DA_SetGetProgramNameCallback(GetProgramNameCallback cb)
+{
     g_getProgramName = cb;
 }
 
+typedef const char *(*GetStringGlobalCallback)();
+static GetStringGlobalCallback g_GetStringGlobal = nullptr;
+extern "C" __declspec(dllexport) void DA_GetStringGlobalCallback(GetStringGlobalCallback cb)
+{
+    g_GetStringGlobal = cb;
+}
 
+// Read values from c#
 extern "C" __declspec(dllexport)
-const char* DA_GetProgramm()
+const char *
+DA_GetProgramm()
 {
     if (g_getProgramName)
-        return g_getProgramName(); 
+        return g_getProgramName();
 
     return "No callback set";
+}
+
+const char *GetStringGlobal(const char *key, const char *defaultReturnValue)
+{
+    const char *result = g_GetStringGlobal();
+
+    if (result != nullptr && strlen(result) == 0)
+        return defaultReturnValue;
+    else
+        return result;
 }
