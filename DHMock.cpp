@@ -46,6 +46,14 @@ extern "C" __declspec(dllexport) void RegisterGetAusfKey_With_DaModellNrCallback
     g_GetAusfKey = cb;
 }
 
+typedef long (*AddKeyCallback)(long key);
+static AddKeyCallback g_AddKey = nullptr;
+
+extern "C" __declspec(dllexport) void AddKey(AddKeyCallback cb)
+{
+    g_AddKey = cb;
+}
+
 const long GetAusfKey_With_DaModellNr(void *obj, long value)
 {
     if (g_GetAusfKey)
@@ -70,4 +78,10 @@ const char *GetStringGlobal(long key, const char *defaultReturnValue)
         return g_GetStringGlobal(key, defaultReturnValue);
 
     return "No callback set";
+}
+
+void AddKey(long key)
+{
+    if (g_AddKey)
+        g_AddKey(key);
 }

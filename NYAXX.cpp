@@ -3,7 +3,7 @@
 
 const char *VI_MANUFACTURER = "22";
 long VI_XX_ECKRADIUS_S = 2611;
-
+long VI_XX_Tisch_S = 600;
 class NXAA
 {
     typedef std::string string;
@@ -19,6 +19,8 @@ public:
         string Tischplatte = GetStringGlobal(TischplatteKey, "tt");
         std::cout << "Tischplatte: " + Tischplatte << "\n";
 
+        AddKey(TischplatteKey);
+        AddKey(VI_XX_Tisch_S);
         return "3";
     }
 };
