@@ -2,6 +2,7 @@
 #include "DHMock.cpp"
 
 const char *VI_MANUFACTURER = "22";
+long VI_XX_ECKRADIUS_S = 2611;
 
 class NXAA
 {
@@ -10,8 +11,14 @@ class NXAA
 public:
     const char *Run()
     {
-        const string manu = GetStringGlobal(VI_MANUFACTURER, "AA");
-        std::cout << manu;
+        // const string manu = GetStringGlobal(VI_MANUFACTURER, "AA");
+
+        long TischplatteKey = GetAusfKey_With_DaModellNr(this, VI_XX_ECKRADIUS_S); // 2611
+        std::cout << "TischplatteKey: " << TischplatteKey << "\n";
+
+        string Tischplatte = GetStringGlobal(TischplatteKey, "tt");
+        std::cout << "Tischplatte: " + Tischplatte << "\n";
+
         return "3";
     }
 };

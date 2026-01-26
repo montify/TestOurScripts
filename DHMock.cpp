@@ -1,16 +1,5 @@
 #include <cstring>
 
-namespace TA7
-{
-    namespace Utils
-    {
-        std::string GetShort(std::string str)
-        {
-            return str;
-        }
-    }
-}
-
 typedef void (*WriteKeyCallback)(int, const char *);
 typedef void (*ReadKeyCallback)(int);
 typedef void (*SetProgrammCallback)(const char *);
@@ -19,7 +8,7 @@ static WriteKeyCallback writeKeyCallback = nullptr;
 static ReadKeyCallback readKeyCallback = nullptr;
 static SetProgrammCallback programmCallback = nullptr;
 
-// Write values to c#
+// Write values to c to c#
 extern "C" __declspec(dllexport) void RegisterWriteKeyCallback(WriteKeyCallback callback)
 {
     writeKeyCallback = callback;
@@ -34,6 +23,7 @@ extern "C" __declspec(dllexport) void RegisterProgrammCallback(SetProgrammCallba
     programmCallback = callback;
 }
 
+// Read values from c# to c
 typedef const char *(*GetProgramNameCallback)();
 static GetProgramNameCallback g_getProgramName = nullptr;
 extern "C" __declspec(dllexport) void DA_SetGetProgramNameCallback(GetProgramNameCallback cb)
@@ -41,14 +31,29 @@ extern "C" __declspec(dllexport) void DA_SetGetProgramNameCallback(GetProgramNam
     g_getProgramName = cb;
 }
 
-typedef const char *(*GetStringGlobalCallback)();
+typedef const char *(*GetStringGlobalCallback)(long key, const char *defaultReturnValue);
 static GetStringGlobalCallback g_GetStringGlobal = nullptr;
 extern "C" __declspec(dllexport) void DA_GetStringGlobalCallback(GetStringGlobalCallback cb)
 {
     g_GetStringGlobal = cb;
 }
 
-// Read values from c#
+typedef long (*GetAusfKey_With_DaModellNrCallback)(void *obj, long value);
+static GetAusfKey_With_DaModellNrCallback g_GetAusfKey = nullptr;
+
+extern "C" __declspec(dllexport) void RegisterGetAusfKey_With_DaModellNrCallback(GetAusfKey_With_DaModellNrCallback cb)
+{
+    g_GetAusfKey = cb;
+}
+
+const long GetAusfKey_With_DaModellNr(void *obj, long value)
+{
+    if (g_GetAusfKey)
+        return g_GetAusfKey(obj, value);
+
+    return 0;
+}
+
 extern "C" __declspec(dllexport)
 const char *
 DA_GetProgramm()
@@ -59,12 +64,10 @@ DA_GetProgramm()
     return "No callback set";
 }
 
-const char *GetStringGlobal(const char *key, const char *defaultReturnValue)
+const char *GetStringGlobal(long key, const char *defaultReturnValue)
 {
-    const char *result = g_GetStringGlobal();
+    if (g_getProgramName)
+        return g_GetStringGlobal(key, defaultReturnValue);
 
-    if (result != nullptr && strlen(result) == 0)
-        return defaultReturnValue;
-    else
-        return result;
+    return "No callback set";
 }
