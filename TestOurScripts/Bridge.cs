@@ -26,6 +26,9 @@ namespace TestOurScripts
         [DllImport("test.dll", CallingConvention = CallingConvention.Cdecl)]
         static extern void AddKey(AddKeyDelegate cb);
 
+        [DllImport("test.dll", CallingConvention = CallingConvention.Cdecl)]
+        static extern void AddString(AddStringDelegate cb);
+
         //Get called from C++
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate IntPtr GetProgramNameDelegate();
@@ -42,13 +45,17 @@ namespace TestOurScripts
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void AddKeyDelegate(long key);
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void AddStringDelegate(long key, string value);
+
         GetProgramNameDelegate getProgramNameDelegate = () =>
         {
             return Marshal.StringToHGlobalAnsi("Was ge");
         };
         GetStringGlobalDelegate getStringGlobalCallback = (long key, string defaultValue) =>
         {
-            //    Console.WriteLine($"getStringGlobal c#: {key}");
+            if (key == 2)
+                return Marshal.StringToHGlobalAnsi("MENU");
 
             var foundValue = "TEST_FOUND";
             return Marshal.StringToHGlobalAnsi(foundValue);
@@ -81,6 +88,16 @@ namespace TestOurScripts
             Console.WriteLine($"addKeyCallback c#: {result}");
         };
 
+        AddStringDelegate addStringCallback = (long key, string value) =>
+        {
+            long prefix = 180000;
+            long result = long.Parse(prefix.ToString()[0..3] + key.ToString());
+
+            var foundValue = "TEST_FOUND";
+
+            Console.WriteLine($"addStringCallback Key: {result} | Value: {value}");
+        };
+
         private void RegisterCallbacks()
         {
             // Register callback with C++
@@ -88,6 +105,7 @@ namespace TestOurScripts
             DA_GetStringGlobalCallback(getStringGlobalCallback);
             RegisterGetAusfKey_With_DaModellNrCallback(getAusfKey_With_DaModellNrCallback);
             AddKey(addKeyCallback);
+            AddString(addStringCallback);
         }
 
         public void Run()

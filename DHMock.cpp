@@ -54,6 +54,14 @@ extern "C" __declspec(dllexport) void AddKey(AddKeyCallback cb)
     g_AddKey = cb;
 }
 
+typedef long (*AddStringCallback)(long key, const char *value);
+static AddStringCallback g_AddString = nullptr;
+
+extern "C" __declspec(dllexport) void AddString(AddStringCallback cb)
+{
+    g_AddString = cb;
+}
+
 const long GetAusfKey_With_DaModellNr(void *obj, long value)
 {
     if (g_GetAusfKey)
@@ -84,4 +92,10 @@ void AddKey(long key)
 {
     if (g_AddKey)
         g_AddKey(key);
+}
+
+void AddString(long key, const char *value)
+{
+    if (g_AddString)
+        g_AddString(key, value);
 }
